@@ -1,6 +1,5 @@
 const admin = require("firebase-admin");
 
-// Firebase Admin SDK 초기화
 if (!admin.apps.length) {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
   admin.initializeApp({
@@ -9,26 +8,22 @@ if (!admin.apps.length) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    res.status(405).send("Method Not Allowed");
-    return;
-  }
+  if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
   const { tokens, title, body, step } = req.body;
 
   if (!tokens || !Array.isArray(tokens) || tokens.length === 0 || !title || !body) {
-    res.status(400).send('Bad Request: "tokens"(배열), "title", "body" 필요');
-    return;
+    return res.status(400).send('Bad Request: "tokens"(배열), "title", "body" 필요');
   }
 
   try {
     const messages = tokens.map(token => ({
-      notification: { title, body },
-      data: { title, body, step: step || "0" },
+      notification: { title: title, body: body },
+      data: { title: title, body: body, step: step || "0" },
       token,
     }));
 
-    // 최신 SDK에서는 admin.messaging() 호출 후 sendAll
+    // sendAll 호출
     const response = await admin.messaging().sendAll(messages);
 
     console.log("Successfully sent messages:", response);
