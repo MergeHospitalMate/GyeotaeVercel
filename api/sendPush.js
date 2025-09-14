@@ -1,5 +1,6 @@
-const admin = require("firebase-admin");
+import * as admin from "firebase-admin";
 
+// Firebase Admin SDK 초기화
 if (!admin.apps.length) {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
   admin.initializeApp({
@@ -8,23 +9,25 @@ if (!admin.apps.length) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+  if (req.method !== "POST") {
+    return res.status(405).send("Method Not Allowed");
+  }
 
   const { tokens, title, body, step } = req.body;
 
   if (!tokens || !Array.isArray(tokens) || tokens.length === 0 || !title || !body) {
-    return res.status(400).send('Bad Request: "tokens"(배열), "title", "body" 필요');
+    return res.status(400).send('Bad Request: "tokens" (배열), "title", "body" 필요');
   }
 
   try {
-    const messages = tokens.map(token => ({
-      notification: { title: title, body: body },
-      data: { title: title, body: body, step: step || "0" },
-      token,
-    }));
+    const message = {
+      notification: { title, body },
+      data: { title, body, step: step || "0" },
+      tokens,
+    };
 
-    // sendAll 호출
-    const response = await admin.messaging().sendAll(messages);
+    // sendEachForMulticast() 사용
+    const response = await admin.messaging().sendEachForMulticast(message);
 
     console.log("Successfully sent messages:", response);
     res.status(200).json({ success: true, response });
