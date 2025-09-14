@@ -1,14 +1,17 @@
 import admin from "firebase-admin";
 
-// Firebase Admin 초기화
+// Firebase Admin SDK 초기화 (Serverless 안전하게)
+let adminApp;
 if (!admin.apps.length) {
   const serviceAccount = JSON.parse(
     process.env.FIREBASE_SERVICE_ACCOUNT_JSON
   );
 
-  admin.initializeApp({
+  adminApp = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
   });
+} else {
+  adminApp = admin.app();
 }
 
 export default async function handler(req, res) {
@@ -25,13 +28,16 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 메시지 객체
     const message = {
       notification: { title, body },
-      data: { step: step || "" },
+      data: { title, body, step: step || "0" },
       token,
     };
 
-    const response = await admin.messaging().send(message);
+    // 메시지 전송
+    const response = await adminApp.messaging().send(message);
+
     console.log("Successfully sent message:", response);
     res.status(200).json({ success: true, messageId: response });
   } catch (error) {
