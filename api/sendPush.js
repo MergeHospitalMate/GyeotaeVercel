@@ -1,4 +1,4 @@
-import admin from "firebase-admin";
+const admin = require("firebase-admin");
 
 // Firebase Admin SDK 초기화
 if (!admin.apps.length) {
