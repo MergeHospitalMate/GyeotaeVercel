@@ -21,8 +21,9 @@ export default async function handler(req, res) {
 
   try {
     const message = {
-      notification: { title, body },
+      // notification: { title, body },
       data: { title, body, step: step || "0" },
+      android: { priority: "high" },
       tokens,
     };
 
